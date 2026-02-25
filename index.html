@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kavidharan · neural portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: #080c15;
+            color: #e6f2ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: auto; /* default cursor restored */
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            display: block;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem 3rem;
+        }
+
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.2rem 2rem;
+            padding: 2rem 0.5rem 2rem;
+            border-bottom: 2px solid rgba(0, 200, 255, 0.4);
+            margin-bottom: 2rem;
+        }
+
+        .dev-name {
+            font-size: 2.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3cf, #b87cff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px #3cf;
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1rem 1.5rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .nav-btn {
+            background: rgba(0, 20, 35, 0.7);
+            backdrop-filter: blur(10px);
+            border: 2px solid #3cf;
+            color: #e0f0ff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 0.6rem 1.6rem;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 0 15px #00b4ff;
+            transition: 0.15s ease;
+            text-shadow: 0 0 5px #3cf;
+            white-space: nowrap;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 200, 255, 0.3);
+            border-color: #ffb347;
+            box-shadow: 0 0 35px #ffaa33;
+            color: #fff;
+        }
+
+        .section {
+            background: rgba(10, 20, 32, 0.65);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(0, 200, 255, 0.3);
+            border-radius: 50px;
+            padding: 3rem 2.5rem;
+            margin: 4rem 0 6rem;
+            box-shadow: 0 30px 50px #00000080, 0 0 0 1px #3cf3 inset;
+            transition: 0.2s;
+            scroll-margin-top: 5rem;
+        }
+
+        .section:hover {
+            border-color: #ffb347;
+            box-shadow: 0 0 50px #ffaa33, 0 0 0 2px rgba(255, 200, 0, 0.4) inset;
+        }
+
+        .section h2 {
+            font-size: 3.2rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            border-left: 6px solid #3cf;
+            padding-left: 1.5rem;
+            text-shadow: 0 0 20px #3cf;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(0, 200, 255, 0.1);
+            border: 1px solid #3cf;
+            border-radius: 100px;
+            padding: 0.3rem 1.4rem;
+            margin: 0.3rem 0.6rem 0.3rem 0;
+            box-shadow: 0 0 12px #00b4ff;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 2rem;
+            margin-top: 2.5rem;
+        }
+        .skill-item {
+            background: rgba(0, 40, 60, 0.6);
+            border-radius: 40px;
+            padding: 1.5rem 0.8rem;
+            text-align: center;
+            font-size: 1.4rem;
+            border: 2px solid #3cf5;
+            backdrop-filter: blur(4px);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            cursor: pointer;
+        }
+        .skill-item:hover {
+            background: rgba(255, 180, 60, 0.2);
+            border-color: #ffb347;
+            box-shadow: 0 0 35px #ffaa33;
+        }
+
+        /* progress bar inside skill items (only for those with data-fill) */
+        .skill-item[data-fill] {
+            position: relative;
+            --fill-width: 0%; /* default empty */
+        }
+        .skill-item[data-fill]::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: var(--fill-width, 0%);
+            background: linear-gradient(90deg, #3cf, #b87cff);
+            opacity: 0.5;
+            transition: width 0.3s ease;
+            z-index: -1;
+            border-radius: 40px;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 2.2rem;
+            margin-top: 2.5rem;
+        }
+        .project-card {
+            background: rgba(0, 20, 35, 0.8);
+            border-radius: 35px;
+            padding: 2rem 1.5rem;
+            border: 2px solid #3cf5;
+            cursor: pointer;
+        }
+        .project-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+            color: #b3ecff;
+        }
+        .project-card:hover {
+            border-color: #ffb347;
+            box-shadow: 0 0 45px #f90;
+        }
+
+        .contact-flex {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2.5rem;
+            margin: 3rem 0;
+        }
+        .contact-btn {
+            background: transparent;
+            border: 2px solid #3cf;
+            color: #e0f0ff;
+            padding: 1rem 2.8rem;
+            border-radius: 60px;
+            font-size: 1.6rem;
+            font-weight: 600;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            background: rgba(0, 50, 70, 0.3);
+            box-shadow: 0 0 20px #3cf;
+            cursor: pointer;
+        }
+        .contact-btn:hover {
+            background: #ffb347;
+            border-color: #fff;
+            color: #080c15;
+            box-shadow: 0 0 55px #f90;
+        }
+
+        @media (max-width: 700px) {
+            .container { padding: 0.8rem 1rem; }
+            .section { padding: 2rem 1.2rem; }
+        }
+
+        /* Return to Top Button */
+        #returnToTop {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(0, 200, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid #3cf;
+            color: #3cf;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px #00b4ff;
+            transition: 0.3s ease;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #returnToTop.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #returnToTop:hover {
+            background: rgba(0, 200, 255, 0.4);
+            border-color: #ffb347;
+            box-shadow: 0 0 35px #ffaa33;
+            color: #ffaa33;
+            transform: translateY(-5px);
+        }
+
+        /* ===== CUTE HUMANOID ROBOT ASSISTANT (full body) ===== */
+        .robot-wrapper {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 1001;
+            filter: drop-shadow(0 0 15px #3cf) drop-shadow(0 0 30px rgba(180, 124, 255, 0.5));
+            transition: filter 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
+            width: 90px;
+            height: 90px;
+        }
+
+        .robot-wrapper:hover {
+            filter: drop-shadow(0 0 25px #3cf) drop-shadow(0 0 50px #b87cff);
+            transform: scale(1.05);
+        }
+
+        #botAssistant {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* hand raise effect (waving emoji appears near the robot) */
+        .robot-wrapper::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            right: -30px;
+            font-size: 2rem;
+            opacity: 0;
+            transform: rotate(0deg);
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 1002;
+        }
+
+        .robot-wrapper:hover::after {
+            content: '👋';
+            opacity: 1;
+            animation: wave 0.6s infinite alternate;
+        }
+
+        /* "Hi" message near the robot */
+        .robot-wrapper::before {
+            content: 'Hi!';
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 200, 255, 0.9);
+            color: #080c15;
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            box-shadow: 0 0 20px #3cf;
+            border: 1px solid #fff;
+        }
+
+        .robot-wrapper:hover::before {
+            opacity: 1;
+        }
+
+        @keyframes wave {
+            0% { transform: rotate(-10deg) translateY(0); }
+            100% { transform: rotate(20deg) translateY(-5px); }
+        }
+
+        /* Games Launcher Button (right middle) */
+        #gamesLauncher {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffaa33, #ff6b6b);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 25px #ffaa33, 0 0 50px rgba(255, 107, 107, 0.5);
+            transition: all 0.3s ease;
+            z-index: 1002;
+            backdrop-filter: blur(5px);
+        }
+
+        #gamesLauncher:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 0 35px #ffaa33, 0 0 70px #ff6b6b;
+            border-color: #fff;
+        }
+
+        /* Chatbot Popup Panel */
+        #chatPopup {
+            position: fixed;
+            bottom: 120px;
+            left: 30px;
+            width: 350px;
+            max-width: calc(100vw - 60px);
+            height: 500px;
+            max-height: calc(100vh - 150px);
+            background: rgba(10, 20, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid #3cf;
+            border-radius: 25px;
+            box-shadow: 0 0 50px rgba(0, 200, 255, 0.5);
+            z-index: 1003;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+        }
+
+        #chatPopup.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 200, 255, 0.2);
+            border-bottom: 1px solid #3cf;
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chat-header h3 {
+            font-size: 1.3rem;
+            color: #fff;
+            text-shadow: 0 0 10px #3cf;
+        }
+
+        .speaker-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #3cf;
+            color: #3cf;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .speaker-btn:hover {
+            background: rgba(0, 200, 255, 0.3);
+            border-color: #ffb347;
+            color: #ffb347;
+            transform: scale(1.1);
+        }
+
+        .speaker-btn.speaking {
+            background: #3cf;
+            color: #080c15;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px #3cf; }
+            50% { box-shadow: 0 0 20px #3cf; }
+            100% { box-shadow: 0 0 5px #3cf; }
+        }
+
+        .close-chat {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #3cf;
+            color: #3cf;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .close-chat:hover {
+            background: rgba(255, 70, 70, 0.3);
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+            transform: scale(1.1);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 0.8rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: rgba(0, 200, 255, 0.2);
+            border: 1px solid #3cf;
+            border-top-left-radius: 5px;
+            color: #e0f0ff;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: rgba(180, 124, 255, 0.3);
+            border: 1px solid #b87cff;
+            border-top-right-radius: 5px;
+            color: #fff;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 1rem;
+            gap: 0.8rem;
+            border-top: 1px solid #3cf;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #3cf;
+            border-radius: 30px;
+            padding: 0.8rem 1.2rem;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: text;
+        }
+
+        .chat-input-area input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .chat-input-area input:focus {
+            border-color: #b87cff;
+            box-shadow: 0 0 15px #b87cff;
+        }
+
+        .send-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(0, 200, 255, 0.2);
+            border: 1px solid #3cf;
+            color: #3cf;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #3cf;
+            color: #080c15;
+            transform: scale(1.1);
+        }
+
+        /* Games Menu Popup */
+        #gamesMenuPopup {
+            position: fixed;
+            top: 50%;
+            right: 100px;
+            transform: translateY(-50%);
+            width: 280px;
+            background: rgba(10, 20, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid #ffaa33;
+            border-radius: 25px;
+            box-shadow: 0 0 50px rgba(255, 170, 51, 0.5);
+            z-index: 1004;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        #gamesMenuPopup.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .games-menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 170, 51, 0.2);
+            border-bottom: 1px solid #ffaa33;
+        }
+
+        .games-menu-header h3 {
+            font-size: 1.3rem;
+            color: #fff;
+            text-shadow: 0 0 10px #ffaa33;
+        }
+
+        .close-games-menu {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ffaa33;
+            color: #ffaa33;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .close-games-menu:hover {
+            background: rgba(255, 70, 70, 0.3);
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+            transform: scale(1.1);
+        }
+
+        .games-menu-options {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .game-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ffaa33;
+            border-radius: 15px;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .game-option:hover {
+            background: rgba(255, 170, 51, 0.3);
+            transform: scale(1.02);
+            box-shadow: 0 0 20px #ffaa33;
+        }
+
+        /* Game Popups */
+        .game-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            background: rgba(10, 20, 35, 0.98);
+            backdrop-filter: blur(20px);
+            border: 2px solid #3cf;
+            border-radius: 30px;
+            box-shadow: 0 0 70px rgba(0, 200, 255, 0.7);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .game-popup.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .game-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 200, 255, 0.2);
+            border-bottom: 1px solid #3cf;
+        }
+
+        .game-header h3 {
+            font-size: 1.4rem;
+            color: #fff;
+            text-shadow: 0 0 10px #3cf;
+        }
+
+        .close-game {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #3cf;
+            color: #3cf;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .close-game:hover {
+            background: rgba(255, 70, 70, 0.3);
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .game-content {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .guess-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #3cf;
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1.2rem;
+            text-align: center;
+            cursor: text;
+        }
+
+        .guess-feedback {
+            font-size: 1.2rem;
+            color: #ffaa33;
+            min-height: 2rem;
+        }
+
+        .guess-stats {
+            font-size: 1rem;
+            color: #b3ecff;
+        }
+
+        .game-btn {
+            background: rgba(0, 200, 255, 0.2);
+            border: 1px solid #3cf;
+            color: #fff;
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .game-btn:hover {
+            background: #3cf;
+            color: #080c15;
+            transform: scale(1.05);
+        }
+
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 400px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .puzzle-tile {
+            aspect-ratio: 1;
+            background: rgba(0, 200, 255, 0.2);
+            border: 2px solid #3cf;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.3);
+        }
+
+        .puzzle-tile:hover:not(.empty) {
+            background: rgba(0, 200, 255, 0.4);
+            transform: scale(1.02);
+        }
+
+        .puzzle-tile.empty {
+            background: transparent;
+            border: 2px dashed rgba(0, 200, 255, 0.3);
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .puzzle-message {
+            font-size: 1.1rem;
+            color: #ffaa33;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NO CURSOR EFFECT – REMOVED AS REQUESTED -->
+
+    <canvas id="canvas"></canvas>
+
+    <div class="container">
+        <!-- navigation -->
+        <div class="nav-bar">
+            <div class="dev-name">Kavidharan</div>
+            <div class="nav-links">
+                <button class="nav-btn" data-section="home">Home</button>
+                <button class="nav-btn" data-section="about">About</button>
+                <button class="nav-btn" data-section="skills">Skills</button>
+                <button class="nav-btn" data-section="projects">Project</button>
+                <button class="nav-btn" data-section="education">Education</button>
+                <button class="nav-btn" data-section="contact">Contacts</button>
+            </div>
+        </div>
+
+        <!-- All sections (unchanged) -->
+        <section id="home" class="section"><h2>HOME</h2><div><p><span class="badge">Aspiring Software Developer</span> <span class="badge">ECE Student</span></p><p style="font-size:1.5rem; font-weight:600; margin-top:1rem">Kavidharan</p><p style="font-size:1.3rem; color:#b3ecff">Bridging Electronics and Software through Programming and Frontend Web Development.</p><p style="font-size:1.2rem; margin-top:1.5rem">I am a 3rd year Electronics and Communication Engineering student with a strong interest in software development. I enjoy working with programming languages like Java and Python, and building responsive frontend web applications using modern technologies.</p></div></section>
+
+        <section id="about" class="section"><h2>ABOUT</h2><p style="font-size:1.3rem; line-height:1.8">I am currently pursuing my Bachelor's degree in Electronics and Communication Engineering (ECE) and I have developed a growing interest in the IT sector alongside my core domain. I possess foundational knowledge in Java, Python and Frontend Web Development technologies such as HTML and CSS. I have also developed frontend-based web applications and continuously working on enhancing my development skills. Currently, I am learning React and Database concepts to strengthen my full-stack development capabilities. I am passionate about problem solving and building efficient applications that improve user experience.</p></section>
+
+        <!-- SKILLS SECTION with hover fill (no percentage text) -->
+        <section id="skills" class="section"><h2>SKILLS</h2><div style="margin-bottom:1.5rem"><span class="badge" style="background:rgba(0,200,255,0.2)">Programming Languages</span></div><div class="skills-grid" style="grid-template-columns:repeat(auto-fit, minmax(120px, 1fr))">
+            <div class="skill-item" data-fill="80%" data-skill="Java">Java</div>
+            <div class="skill-item" data-fill="70%" data-skill="Python">Python</div>
+        </div><div style="margin:2rem 0 1rem"><span class="badge" style="background:rgba(0,200,255,0.2)">Frontend Technologies</span></div><div class="skills-grid" style="grid-template-columns:repeat(auto-fit, minmax(120px, 1fr))">
+            <div class="skill-item" data-fill="95%" data-skill="HTML">HTML</div>
+            <div class="skill-item" data-fill="65%" data-skill="CSS">CSS</div>
+            <div class="skill-item">React (On Progress)</div>
+        </div><div style="margin:2rem 0 1rem"><span class="badge" style="background:rgba(0,200,255,0.2)">Database</span></div><div class="skills-grid" style="grid-template-columns:repeat(auto-fit, minmax(120px, 1fr))">
+            <div class="skill-item">SQL (On Progress)</div>
+        </div><div style="margin:2rem 0 1rem"><span class="badge" style="background:rgba(0,200,255,0.2)">Core Skills</span></div><div class="skills-grid" style="grid-template-columns:repeat(auto-fit, minmax(140px, 1fr))"><div class="skill-item">Problem Solving</div><div class="skill-item">Logical Thinking</div></div><div style="margin:2rem 0 1rem"><span class="badge" style="background:rgba(0,200,255,0.2)">Tools</span></div><div class="skills-grid" style="grid-template-columns:repeat(auto-fit, minmax(130px, 1fr))"><div class="skill-item">VS Code</div><div class="skill-item">Eclipse IDE</div><div class="skill-item">MySQL</div></div></section>
+
+        <section id="projects" class="section"><h2>PROJECTS</h2><div class="projects-grid"><div class="project-card"><h3>Frontend Web Application</h3><p>Developed a responsive frontend web application using HTML and CSS. The application focuses on user-friendly interface design and efficient layout structure, demonstrating practical knowledge in frontend web development and UI implementation.</p></div><div class="project-card"><h3>Python Package Calculator</h3><p>Created a modular calculator application using Python packages which demonstrates the concept of modular programming and package implementation in Python.</p></div><div class="project-card"><h3>React Based Web Application (In Progress)</h3><p>Currently working on building interactive web interfaces using React to enhance frontend development skills and gain practical experience in modern web application development.</p></div></div></section>
+
+        <section id="education" class="section"><h2>EDUCATION</h2><p style="font-size:1.8rem; font-weight:300; margin-bottom:1rem">Bachelor of Engineering in Electronics and Communication Engineering</p><p style="font-size:1.4rem; color:#b3ecff">3rd Year – 6th Semester</p><p style="font-size:1.3rem; margin-top:1rem">Currently Pursuing</p><div style="margin-top:3rem; background:rgba(0,200,255,0.1); padding:2rem; border-radius:30px; border:1px solid #3cf5"><p style="font-size:1.3rem; line-height:1.8"><span style="color:#ffaa33">🎯 Career Objective:</span> To begin my career in the IT industry where I can apply my programming knowledge, frontend development skills and problem-solving abilities to contribute to organizational growth while continuously enhancing my technical expertise.</p></div></section>
+
+        <section id="status" class="section" style="margin-top:2rem"><h2>SYSTEM STATUS</h2><div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:1rem"><div class="skill-item" style="text-align:left; padding:1rem 1.5rem">⚡ DEVELOPER STATUS : ACTIVE</div><div class="skill-item" style="text-align:left; padding:1rem 1.5rem">📡 ACADEMIC BACKGROUND : ECE</div><div class="skill-item" style="text-align:left; padding:1rem 1.5rem">✅ FRONTEND PROJECT : COMPLETED</div><div class="skill-item" style="text-align:left; padding:1rem 1.5rem">🔄 REACT PROJECT : IN PROGRESS</div><div class="skill-item" style="text-align:left; padding:1rem 1.5rem">🗄️ DATABASE : LEARNING</div><div class="skill-item" style="text-align:left; padding:1rem 1.5rem">🧠 PROBLEM SOLVING : STRONG</div><div class="skill-item" style="text-align:left; padding:1rem 1.5rem">💼 AVAILABLE FOR INTERNSHIP : YES</div></div></section>
+
+        <section id="contact" class="section"><h2>CONTACT</h2><div class="contact-flex" style="flex-direction:column; align-items:center; gap:1.5rem"><div style="display:flex; flex-wrap:wrap; justify-content:center; gap:2rem"><a href="mailto:kdharan9944@gmail.com" class="contact-btn" style="font-size:1.2rem">📧 kdharan9944@gmail.com</a><a href="https://github.com/kavi-dharan" target="_blank" class="contact-btn" style="font-size:1.2rem">🐙 GitHub</a><a href="https://www.linkedin.com/in/kavidharan-g-325661376" target="_blank" class="contact-btn" style="font-size:1.2rem">🔗 LinkedIn</a></div><div style="margin-top:2rem"><a href="#" id="downloadResumeBtn" class="contact-btn" style="font-size:1.2rem; background:rgba(255, 180, 70, 0.2); border-color:#ffaa33">📄 Download Resume</a></div></div></section>
+    </div>
+
+    <!-- Return to Top Button -->
+    <div id="returnToTop" title="Return to Top">↑</div>
+
+    <!-- CUTE HUMANOID ROBOT ASSISTANT (full body) – REPLACE THE SVG BELOW WITH YOUR OWN IMAGE IF NEEDED -->
+    <div class="robot-wrapper" id="robotWrapper">
+        <div id="botAssistant" title="Chat Assistant">
+            <!-- Inline SVG for full-body cute robot – replace this entire <svg> with an <img> tag pointing to your image -->
+            <svg viewBox="0 0 100 100" width="90" height="90">
+                <!-- Body -->
+                <rect x="30" y="40" width="40" height="35" rx="10" fill="#88c9ff" stroke="#333" stroke-width="2"/>
+                <!-- Head -->
+                <circle cx="50" cy="25" r="18" fill="#ffd966" stroke="#333" stroke-width="2"/>
+                <!-- Eyes -->
+                <circle cx="40" cy="22" r="4" fill="white" stroke="#333" stroke-width="1.5"/>
+                <circle cx="60" cy="22" r="4" fill="white" stroke="#333" stroke-width="1.5"/>
+                <circle cx="40" cy="22" r="2" fill="#333"/>
+                <circle cx="60" cy="22" r="2" fill="#333"/>
+                <!-- Blush -->
+                <circle cx="35" cy="30" r="3" fill="#ffb3ba" opacity="0.8"/>
+                <circle cx="65" cy="30" r="3" fill="#ffb3ba" opacity="0.8"/>
+                <!-- Antenna -->
+                <rect x="47" y="8" width="6" height="12" fill="#ffaa33"/>
+                <circle cx="50" cy="6" r="4" fill="#ffaa33" stroke="#333" stroke-width="1.5"/>
+                <!-- Arms -->
+                <rect x="15" y="45" width="15" height="8" rx="4" fill="#88c9ff" stroke="#333" stroke-width="1.5" transform="rotate(-15 20 50)"/>
+                <rect x="70" y="45" width="15" height="8" rx="4" fill="#88c9ff" stroke="#333" stroke-width="1.5" transform="rotate(15 85 50)"/>
+                <!-- Hands -->
+                <circle cx="16" cy="52" r="5" fill="#ffd966" stroke="#333" stroke-width="1.5"/>
+                <circle cx="84" cy="52" r="5" fill="#ffd966" stroke="#333" stroke-width="1.5"/>
+                <!-- Legs -->
+                <rect x="35" y="75" width="10" height="18" rx="5" fill="#88c9ff" stroke="#333" stroke-width="1.5"/>
+                <rect x="55" y="75" width="10" height="18" rx="5" fill="#88c9ff" stroke="#333" stroke-width="1.5"/>
+                <!-- Feet -->
+                <ellipse cx="40" cy="94" rx="8" ry="4" fill="#ffd966" stroke="#333" stroke-width="1.5"/>
+                <ellipse cx="60" cy="94" rx="8" ry="4" fill="#ffd966" stroke="#333" stroke-width="1.5"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Games Launcher Button (right middle) -->
+    <div id="gamesLauncher" title="Play Mini Games">🚀</div>
+
+    <!-- Chatbot Popup Panel - Kavi 2.0 -->
+    <div id="chatPopup">
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <h3>🤖 Kavi 2.0</h3>
+                <div class="speaker-btn" id="speakerBtn" title="Read last response aloud">🔊</div>
+            </div>
+            <div class="close-chat" id="closeChat">✕</div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">Hi! I'm Kavi 2.0, your neural assistant. How can I help you today?</div>
+            <div class="message bot-message">You can ask me about Kavi's skills, projects, education, or contact details!</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Type your message..." autocomplete="off">
+            <div class="send-btn" id="sendMessage">➤</div>
+        </div>
+    </div>
+
+    <!-- Games Menu Popup -->
+    <div id="gamesMenuPopup">
+        <div class="games-menu-header">
+            <h3>🎮 Mini Games</h3>
+            <div class="close-games-menu" id="closeGamesMenu">✕</div>
+        </div>
+        <div class="games-menu-options">
+            <div class="game-option" id="guessGameOption">Number Guess Game (1-100)</div>
+            <div class="game-option" id="puzzleGameOption">4x4 Sliding Puzzle Game</div>
+        </div>
+    </div>
+
+    <!-- Number Guess Game Popup -->
+    <div id="guessGamePopup" class="game-popup">
+        <div class="game-header">
+            <h3>🔢 Number Guess Game</h3>
+            <div class="close-game" id="closeGuessGame">✕</div>
+        </div>
+        <div class="game-content">
+            <p style="color:#b3ecff">Guess a number between 1 and 100</p>
+            <input type="number" id="guessInput" class="guess-input" placeholder="Enter your guess" min="1" max="100">
+            <div class="guess-feedback" id="guessFeedback"></div>
+            <div class="guess-stats" id="guessStats">Attempts: 0</div>
+            <button class="game-btn" id="submitGuess">Submit Guess</button>
+            <button class="game-btn" id="newGuessGame">New Game</button>
+        </div>
+    </div>
+
+    <!-- Sliding Puzzle Game Popup -->
+    <div id="puzzleGamePopup" class="game-popup">
+        <div class="game-header">
+            <h3>🧩 4x4 Sliding Puzzle</h3>
+            <div class="close-game" id="closePuzzleGame">✕</div>
+        </div>
+        <div class="game-content">
+            <div class="puzzle-grid" id="puzzleGrid"></div>
+            <div class="puzzle-message" id="puzzleMessage"></div>
+            <button class="game-btn" id="newPuzzleGame">New Puzzle</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- COMPLETE NEURAL NETWORK ANIMATION CODE (UNCHANGED) ----------
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            let w, h;
+            let nodes = [];
+
+            const NODE_COUNT = 70;
+            const CONNECT_DIST = 200;
+            const BASE_SPEED = 0.3;
+
+            let processingActive = false;
+            let selectedIndices = [];
+            let processingTimer = 0;
+            const PROCESSING_DURATION = 30;
+            let targetSectionId = '';
+
+            let originalPositions = [];
+            let vibrationOffsets = [];
+
+            function initNodes() {
+                nodes = [];
+                for (let i = 0; i < NODE_COUNT; i++) {
+                    nodes.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * BASE_SPEED,
+                        vy: (Math.random() - 0.5) * BASE_SPEED,
+                        radius: 2.5 + Math.random() * 4,
+                        baseX: 0, baseY: 0
+                    });
+                }
+                originalPositions = nodes.map(n => ({ x: n.x, y: n.y }));
+                nodes.forEach((n, i) => {
+                    n.baseX = n.x;
+                    n.baseY = n.y;
+                });
+                vibrationOffsets = new Array(NODE_COUNT).fill(0).map(() => ({ x: 0, y: 0 }));
+            }
+
+            function resize() {
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w;
+                canvas.height = h;
+                initNodes();
+            }
+
+            function selectHalfNodes() {
+                const halfCount = Math.floor(NODE_COUNT / 2);
+                const shuffled = Array.from({ length: nodes.length }, (_, i) => i);
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled.slice(0, halfCount);
+            }
+
+            function startProcessing(sectionId) {
+                if (processingActive) return;
+                selectedIndices = selectHalfNodes();
+                nodes.forEach((n, i) => {
+                    n.baseX = n.x;
+                    n.baseY = n.y;
+                });
+                targetSectionId = sectionId;
+                processingActive = true;
+                processingTimer = 0;
+            }
+
+            function updateProcessing() {
+                if (!processingActive) return;
+                processingTimer++;
+                for (let idx of selectedIndices) {
+                    vibrationOffsets[idx] = {
+                        x: (Math.random() - 0.5) * 3,
+                        y: (Math.random() - 0.5) * 3
+                    };
+                }
+                for (let i = 0; i < nodes.length; i++) {
+                    if (selectedIndices.includes(i)) {
+                        nodes[i].x = nodes[i].baseX + vibrationOffsets[i].x;
+                        nodes[i].y = nodes[i].baseY + vibrationOffsets[i].y;
+                    } else {
+                        nodes[i].x = nodes[i].baseX;
+                        nodes[i].y = nodes[i].baseY;
+                    }
+                }
+                if (processingTimer >= PROCESSING_DURATION) {
+                    processingActive = false;
+                    for (let i = 0; i < nodes.length; i++) {
+                        nodes[i].x = nodes[i].baseX;
+                        nodes[i].y = nodes[i].baseY;
+                        vibrationOffsets[i] = { x: 0, y: 0 };
+                    }
+                    if (targetSectionId) {
+                        const el = document.getElementById(targetSectionId);
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                }
+            }
+
+            function updateNodes() {
+                if (!processingActive) {
+                    for (let n of nodes) {
+                        n.x += n.vx;
+                        n.y += n.vy;
+                        if (n.x < 0 || n.x > w) { n.vx *= -0.9; n.x = Math.min(w, Math.max(0, n.x)); }
+                        if (n.y < 0 || n.y > h) { n.vy *= -0.9; n.y = Math.min(h, Math.max(0, n.y)); }
+                        n.vx += (Math.random() - 0.5) * 0.04;
+                        n.vy += (Math.random() - 0.5) * 0.04;
+                        let sp = Math.hypot(n.vx, n.vy);
+                        if (sp > 1.2) { n.vx *= 0.98; n.vy *= 0.98; }
+                        n.baseX = n.x;
+                        n.baseY = n.y;
+                    }
+                } else {
+                    updateProcessing();
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+                ctx.lineWidth = 1.4;
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i+1; j < nodes.length; j++) {
+                        const a = nodes[i], b = nodes[j];
+                        const dx = a.x - b.x, dy = a.y - b.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < CONNECT_DIST) {
+                            const alpha = (1 - dist / CONNECT_DIST) * 0.4;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            const isSelected = (selectedIndices.includes(i) || selectedIndices.includes(j)) && processingActive;
+                            if (isSelected) {
+                                const pulse = Math.sin(Date.now() * 0.02) * 0.2 + 0.8;
+                                ctx.strokeStyle = `rgba(255, 200, 100, ${alpha * 1.5})`;
+                                ctx.shadowColor = '#ffaa33';
+                                ctx.shadowBlur = 20 + pulse * 10;
+                            } else {
+                                ctx.strokeStyle = `rgba(0, 200, 255, ${alpha})`;
+                                ctx.shadowColor = '#3cf';
+                                ctx.shadowBlur = 12;
+                            }
+                            ctx.stroke();
+                        }
+                    }
+                }
+                for (let i = 0; i < nodes.length; i++) {
+                    const n = nodes[i];
+                    const isSel = selectedIndices.includes(i) && processingActive;
+                    let radiusMultiplier = 1.7;
+                    let glowSize = 20;
+                    let fillColor = '#b3f0ff';
+                    if (isSel) {
+                        const pulse = Math.sin(Date.now() * 0.02) * 0.3 + 0.7;
+                        radiusMultiplier = 2.2 + pulse * 0.5;
+                        glowSize = 40 + pulse * 20;
+                        fillColor = '#ffe68f';
+                    }
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, n.radius * radiusMultiplier, 0, Math.PI*2);
+                    ctx.fillStyle = fillColor;
+                    ctx.shadowColor = isSel ? '#ffaa33' : '#3cf';
+                    ctx.shadowBlur = isSel ? glowSize : 20;
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, n.radius * 0.9, 0, Math.PI*2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowBlur = 26;
+                    ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+            }
+
+            function animate() {
+                updateNodes();
+                draw();
+                requestAnimationFrame(animate);
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const section = btn.getAttribute('data-section');
+                    if (section) {
+                        if (processingActive) return;
+                        let sectionId = section;
+                        if (section === 'project') sectionId = 'projects';
+                        if (section === 'contact') sectionId = 'contact';
+                        if (section === 'home') sectionId = 'home';
+                        if (section === 'about') sectionId = 'about';
+                        if (section === 'skills') sectionId = 'skills';
+                        if (section === 'education') sectionId = 'education';
+                        startProcessing(sectionId);
+                    }
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                resize();
+            });
+
+            resize();
+            animate();
+
+            // Return to Top Button Logic
+            const returnBtn = document.getElementById('returnToTop');
+            
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    returnBtn.classList.add('visible');
+                } else {
+                    returnBtn.classList.remove('visible');
+                }
+            });
+
+            returnBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Resume Download Button
+            const downloadBtn = document.getElementById('downloadResumeBtn');
+            
+            downloadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                const resumeContent = `KAVI DHARAN - RESUME\n\nAspiring Software Developer | ECE Student\n\nSKILLS:\n- Java 80%\n- Python 70%\n- HTML 95%\n- CSS 65%\n- React (On Progress)\n- SQL (On Progress)\n\nPROJECTS:\n- Frontend Web Application\n- Python Package Calculator\n- React Web Application (In Progress)\n\nEDUCATION:\nBE Electronics and Communication Engineering, 3rd Year\n\nContact: kdharan9944@gmail.com`;
+                
+                const blob = new Blob([resumeContent], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Kavi_Dharan_Resume.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            });
+
+            // ===== FIXED KAVI 2.0 CHATBOT FUNCTIONALITY =====
+            const botBtn = document.getElementById('botAssistant');
+            const chatPopup = document.getElementById('chatPopup');
+            const closeChat = document.getElementById('closeChat');
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendMessage');
+            const chatMessages = document.getElementById('chatMessages');
+            const speakerBtn = document.getElementById('speakerBtn');
+
+            // Text-to-Speech setup
+            let speechSynthesis = window.speechSynthesis;
+            let currentUtterance = null;
+            let isSpeaking = false;
+            let lastBotResponse = '';
+
+            // Portfolio-based responses (using actual content from the portfolio)
+            const portfolioResponses = {
+                'about': "Kavi Dharan is a 3rd year Electronics and Communication Engineering student with a strong interest in software development. He possesses foundational knowledge in Java, Python and Frontend Web Development technologies such as HTML and CSS. He is currently learning React and Database concepts to strengthen his full-stack development capabilities.",
+                
+                'skills': "Kavi's skills include: Programming Languages: Java 80%, Python 70%. Frontend Technologies: HTML 95%, CSS 65%, React (On Progress). Database: SQL (On Progress). Core Skills: Problem Solving and Logical Thinking. Tools: VS Code, Eclipse IDE, and MySQL.",
+                
+                'projects': "Kavi has worked on three main projects: 1. Frontend Web Application - a responsive web app using HTML and CSS. 2. Python Package Calculator - a modular calculator demonstrating package implementation. 3. React Based Web Application - currently in progress to enhance frontend development skills.",
+                
+                'education': "Kavi is pursuing a Bachelor of Engineering in Electronics and Communication Engineering. He is in his 3rd Year, 6th Semester, and currently pursuing the degree. His career objective is to begin his career in the IT industry where he can apply his programming knowledge, frontend development skills and problem-solving abilities to contribute to organizational growth while continuously enhancing his technical expertise.",
+                
+                'contact': "You can contact Kavi via email at kdharan9944@gmail.com, or through his GitHub profile (kavi-dharan) and LinkedIn profile (kavidharan-g-325661376).",
+                
+                'objective': "Kavi's career objective is to begin his career in the IT industry where he can apply his programming knowledge, frontend development skills and problem-solving abilities to contribute to organizational growth while continuously enhancing his technical expertise.",
+                
+                'experience': "Kavi has developed frontend-based web applications and is continuously working on enhancing his development skills. He has experience with Java, Python, HTML, CSS, and is currently learning React and SQL.",
+                
+                'technologies': "Kavi works with Java, Python, HTML, CSS, and is currently learning React and SQL. He uses VS Code, Eclipse IDE, and MySQL as his development tools.",
+                
+                'status': "Developer Status: ACTIVE. Academic Background: ECE. Frontend Project: COMPLETED. React Project: IN PROGRESS. Database: LEARNING. Problem Solving: STRONG. Available for Internship: YES.",
+                
+                'default': "I can only provide information about Kavi's portfolio. You can ask me about his skills, projects, education, contact details, career objective, or technologies he works with."
+            };
+
+            // Function to find the best matching response
+            function getPortfolioResponse(userInput) {
+                const input = userInput.toLowerCase();
+                
+                // Check for keywords and return relevant response
+                if (input.includes('about') || input.includes('who is') || input.includes('tell me about kavi') || input.includes('introduce')) {
+                    return portfolioResponses.about;
+                } else if (input.includes('skill') || input.includes('technologies') || input.includes('programming') || input.includes('know') || input.includes('language')) {
+                    return portfolioResponses.skills;
+                } else if (input.includes('project') || input.includes('built') || input.includes('created') || input.includes('made') || input.includes('work')) {
+                    return portfolioResponses.projects;
+                } else if (input.includes('education') || input.includes('study') || input.includes('degree') || input.includes('college') || input.includes('university') || input.includes('semester')) {
+                    return portfolioResponses.education;
+                } else if (input.includes('contact') || input.includes('email') || input.includes('github') || input.includes('linkedin') || input.includes('reach') || input.includes('mail')) {
+                    return portfolioResponses.contact;
+                } else if (input.includes('objective') || input.includes('goal') || input.includes('career') || input.includes('aim')) {
+                    return portfolioResponses.objective;
+                } else if (input.includes('experience') || input.includes('work')) {
+                    return portfolioResponses.experience;
+                } else if (input.includes('technology') || input.includes('tool') || input.includes('stack') || input.includes('software')) {
+                    return portfolioResponses.technologies;
+                } else if (input.includes('status') || input.includes('system') || input.includes('available')) {
+                    return portfolioResponses.status;
+                } else if (input.includes('hello') || input.includes('hi') || input.includes('hey') || input.includes('good morning') || input.includes('good afternoon')) {
+                    return "Hello! I'm Kavi 2.0. You can ask me about Kavi's skills, projects, education, or contact details.";
+                } else {
+                    return portfolioResponses.default;
+                }
+            }
+
+            function addMessage(text, isBot = true) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', isBot ? 'bot-message' : 'user-message');
+                messageDiv.textContent = text;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // If it's a bot message, store it for text-to-speech
+                if (isBot) {
+                    lastBotResponse = text;
+                }
+            }
+
+            // Text-to-Speech function
+            function speakText(text) {
+                // Cancel any ongoing speech
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel();
+                }
+                
+                currentUtterance = new SpeechSynthesisUtterance(text);
+                currentUtterance.rate = 1;
+                currentUtterance.pitch = 1;
+                currentUtterance.voice = speechSynthesis.getVoices().find(voice => voice.lang === 'en-US') || null;
+                
+                currentUtterance.onstart = () => {
+                    isSpeaking = true;
+                    speakerBtn.classList.add('speaking');
+                };
+                
+                currentUtterance.onend = () => {
+                    isSpeaking = false;
+                    speakerBtn.classList.remove('speaking');
+                };
+                
+                currentUtterance.onerror = () => {
+                    isSpeaking = false;
+                    speakerBtn.classList.remove('speaking');
+                };
+                
+                speechSynthesis.speak(currentUtterance);
+            }
+
+            function stopSpeaking() {
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel();
+                }
+                isSpeaking = false;
+                speakerBtn.classList.remove('speaking');
+            }
+
+            // Toggle chat popup
+            botBtn.addEventListener('click', () => {
+                chatPopup.classList.toggle('visible');
+            });
+
+            closeChat.addEventListener('click', () => {
+                chatPopup.classList.remove('visible');
+                stopSpeaking();
+            });
+
+            // Speaker button click handler
+            speakerBtn.addEventListener('click', () => {
+                if (isSpeaking) {
+                    stopSpeaking();
+                } else if (lastBotResponse) {
+                    speakText(lastBotResponse);
+                } else {
+                    // If no last response, get the last bot message from chat
+                    const botMessages = document.querySelectorAll('.bot-message');
+                    if (botMessages.length > 0) {
+                        const lastMsg = botMessages[botMessages.length - 1].textContent;
+                        speakText(lastMsg);
+                    } else {
+                        const defaultMsg = "I'm Kavi 2.0. Ask me anything about Kavi's portfolio.";
+                        speakText(defaultMsg);
+                    }
+                }
+            });
+
+            // Send message function
+            function sendUserMessage() {
+                const message = chatInput.value.trim();
+                if (message) {
+                    addMessage(message, false);
+                    chatInput.value = '';
+                    
+                    // Bot response after short delay
+                    setTimeout(() => {
+                        const response = getPortfolioResponse(message);
+                        addMessage(response, true);
+                    }, 500);
+                }
+            }
+
+            sendBtn.addEventListener('click', sendUserMessage);
+
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendUserMessage();
+                }
+            });
+
+            // Close popup when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!chatPopup.contains(e.target) && !botBtn.contains(e.target) && chatPopup.classList.contains('visible')) {
+                    chatPopup.classList.remove('visible');
+                    stopSpeaking();
+                }
+            });
+
+            // Games Launcher Logic
+            const gamesLauncher = document.getElementById('gamesLauncher');
+            const gamesMenu = document.getElementById('gamesMenuPopup');
+            const closeGamesMenu = document.getElementById('closeGamesMenu');
+            const guessGameOption = document.getElementById('guessGameOption');
+            const puzzleGameOption = document.getElementById('puzzleGameOption');
+            const guessGamePopup = document.getElementById('guessGamePopup');
+            const puzzleGamePopup = document.getElementById('puzzleGamePopup');
+            const closeGuessGame = document.getElementById('closeGuessGame');
+            const closePuzzleGame = document.getElementById('closePuzzleGame');
+
+            gamesLauncher.addEventListener('click', (e) => {
+                e.stopPropagation();
+                gamesMenu.classList.toggle('visible');
+            });
+
+            closeGamesMenu.addEventListener('click', () => {
+                gamesMenu.classList.remove('visible');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!gamesMenu.contains(e.target) && !gamesLauncher.contains(e.target) && gamesMenu.classList.contains('visible')) {
+                    gamesMenu.classList.remove('visible');
+                }
+            });
+
+            // Number Guess Game Logic
+            let secretNumber = Math.floor(Math.random() * 100) + 1;
+            let attempts = 0;
+            const guessInput = document.getElementById('guessInput');
+            const guessFeedback = document.getElementById('guessFeedback');
+            const guessStats = document.getElementById('guessStats');
+            const submitGuess = document.getElementById('submitGuess');
+            const newGuessGame = document.getElementById('newGuessGame');
+
+            function resetGuessGame() {
+                secretNumber = Math.floor(Math.random() * 100) + 1;
+                attempts = 0;
+                guessInput.value = '';
+                guessFeedback.textContent = '';
+                guessStats.textContent = 'Attempts: 0';
+                guessInput.disabled = false;
+                submitGuess.disabled = false;
+            }
+
+            if (submitGuess) {
+                submitGuess.addEventListener('click', () => {
+                    const guess = parseInt(guessInput.value);
+                    if (isNaN(guess) || guess < 1 || guess > 100) {
+                        guessFeedback.textContent = 'Please enter a number between 1 and 100';
+                        return;
+                    }
+                    attempts++;
+                    guessStats.textContent = `Attempts: ${attempts}`;
+                    
+                    if (guess === secretNumber) {
+                        guessFeedback.textContent = `🎉 Correct! You guessed it in ${attempts} attempts!`;
+                        guessInput.disabled = true;
+                        submitGuess.disabled = true;
+                    } else if (guess < secretNumber) {
+                        guessFeedback.textContent = '📈 Too low! Try again.';
+                    } else {
+                        guessFeedback.textContent = '📉 Too high! Try again.';
+                    }
+                });
+            }
+
+            if (newGuessGame) {
+                newGuessGame.addEventListener('click', resetGuessGame);
+            }
+
+            // Sliding Puzzle Game Logic
+            let puzzleTiles = [];
+            let puzzleSize = 4;
+            let emptyIndex = 15;
+
+            function initializePuzzle() {
+                puzzleTiles = [];
+                for (let i = 1; i < 16; i++) {
+                    puzzleTiles.push(i);
+                }
+                puzzleTiles.push(0);
+                shufflePuzzle();
+                renderPuzzle();
+            }
+
+            function shufflePuzzle() {
+                for (let i = 0; i < 200; i++) {
+                    const possibleMoves = getPossibleMoves(emptyIndex);
+                    const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                    moveTile(randomMove);
+                }
+            }
+
+            function getPossibleMoves(emptyPos) {
+                const moves = [];
+                const row = Math.floor(emptyPos / 4);
+                const col = emptyPos % 4;
+                
+                if (row > 0) moves.push(emptyPos - 4);
+                if (row < 3) moves.push(emptyPos + 4);
+                if (col > 0) moves.push(emptyPos - 1);
+                if (col < 3) moves.push(emptyPos + 1);
+                
+                return moves;
+            }
+
+            function moveTile(tileIndex) {
+                if (!getPossibleMoves(emptyIndex).includes(tileIndex)) return false;
+                
+                puzzleTiles[emptyIndex] = puzzleTiles[tileIndex];
+                puzzleTiles[tileIndex] = 0;
+                emptyIndex = tileIndex;
+                return true;
+            }
+
+            function checkWin() {
+                for (let i = 0; i < 15; i++) {
+                    if (puzzleTiles[i] !== i + 1) return false;
+                }
+                return puzzleTiles[15] === 0;
+            }
+
+            function renderPuzzle() {
+                const grid = document.getElementById('puzzleGrid');
+                const message = document.getElementById('puzzleMessage');
+                if (!grid) return;
+                
+                grid.innerHTML = '';
+                for (let i = 0; i < 16; i++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'puzzle-tile';
+                    if (puzzleTiles[i] === 0) {
+                        tile.classList.add('empty');
+                        tile.textContent = '';
+                    } else {
+                        tile.textContent = puzzleTiles[i];
+                    }
+                    tile.dataset.index = i;
+                    tile.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.dataset.index);
+                        if (moveTile(index)) {
+                            renderPuzzle();
+                            if (checkWin()) {
+                                message.textContent = '🎉 Congratulations! You solved the puzzle!';
+                            } else {
+                                message.textContent = '';
+                            }
+                        }
+                    });
+                    grid.appendChild(tile);
+                }
+            }
+
+            guessGameOption.addEventListener('click', () => {
+                gamesMenu.classList.remove('visible');
+                resetGuessGame();
+                guessGamePopup.classList.add('visible');
+            });
+
+            puzzleGameOption.addEventListener('click', () => {
+                gamesMenu.classList.remove('visible');
+                initializePuzzle();
+                puzzleGamePopup.classList.add('visible');
+            });
+
+            closeGuessGame.addEventListener('click', () => {
+                guessGamePopup.classList.remove('visible');
+            });
+
+            closePuzzleGame.addEventListener('click', () => {
+                puzzleGamePopup.classList.remove('visible');
+            });
+
+            document.getElementById('newPuzzleGame').addEventListener('click', initializePuzzle);
+
+            window.addEventListener('click', (e) => {
+                if (e.target === guessGamePopup) {
+                    guessGamePopup.classList.remove('visible');
+                }
+                if (e.target === puzzleGamePopup) {
+                    puzzleGamePopup.classList.remove('visible');
+                }
+            });
+
+            initializePuzzle();
+
+            // ---------- NO CURSOR EFFECT (removed as requested) ----------
+
+            // ---------- HOVER SKILL FILL (no percentage display) ----------
+            const skillItems = document.querySelectorAll('.skill-item[data-fill]');
+            skillItems.forEach(item => {
+                const fillValue = item.getAttribute('data-fill'); // e.g. "80%"
+                
+                // Ensure initial empty
+                item.style.setProperty('--fill-width', '0%');
+
+                // mouse enter: fill to target
+                item.addEventListener('mouseenter', () => {
+                    item.style.setProperty('--fill-width', fillValue);
+                });
+
+                // mouse leave: reset to empty
+                item.addEventListener('mouseleave', () => {
+                    item.style.setProperty('--fill-width', '0%');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
